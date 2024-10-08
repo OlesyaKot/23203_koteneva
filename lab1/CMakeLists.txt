@@ -4,7 +4,7 @@ project("gtest")
 
 enable_testing()
 add_subdirectory(googletest)
-add_executable(flat_map_test test.cpp)
+add_executable(flat_map_test flatmap.cpp test.cpp)
 target_compile_options(flat_map_test PRIVATE -fprofile-abs-path --coverage)
 target_link_options(flat_map_test PRIVATE -lgcov --coverage)
 target_link_libraries(flat_map_test gtest_main gmock_main)
