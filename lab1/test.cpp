@@ -160,6 +160,15 @@ TEST(Group1, Erase){
     f.insert("Remus", {10, 185});
     f.insert("Severus", {55, 160});
     f.insert("Rosa", {24, 170});
+
+    f.insert("Anna", {15, 160});
+    f.insert("Fred", {85, 188});
+    f.insert("George", {10, 185});
+    f.insert("Kolya", {55, 160});
+    f.insert("Harry", {24, 170});
+    f.insert("Bob", {55, 195});
+    f.insert("Ida", {20, 155});
+    EXPECT_TRUE(f.erase("Teo"));
     EXPECT_TRUE(f.erase("Emma"));
     f.empty();
     EXPECT_TRUE(f.erase("Ann"));

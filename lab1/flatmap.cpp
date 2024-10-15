@@ -1,16 +1,12 @@
 #include "flatmap.h"
 
 #include <algorithm>
-#include <cstring> // for memcpy
 #include <iostream>
 #include <string>
 
-typedef std::string Key;
-typedef std::size_t size_t;
 
 Flat_map::Flat_map(){
-    values = new Value[INIT_CAP];
-    keys = new Key[INIT_CAP];
+    check_alloc_mem(keys, values, INIT_CAP);
 };
 
 Flat_map::~Flat_map(){
@@ -20,25 +16,18 @@ Flat_map::~Flat_map(){
     keys = nullptr;
 };
 
-Flat_map::Flat_map(const Flat_map &flat_map) : keys(nullptr),
-                                               values(nullptr),
-                                               cur_size(flat_map.cur_size),
-                                               capacity(flat_map.capacity){ 
-    keys = new Key[cur_size];
-    values = new Value[cur_size];
+Flat_map::Flat_map(const Flat_map &flat_map) : cur_size(flat_map.cur_size),
+                                               capacity(flat_map.capacity){
+    check_alloc_mem(keys, values, cur_size);
+
     std::copy(flat_map.keys, flat_map.keys + cur_size, keys);
     std::copy(flat_map.values, flat_map.values + cur_size, values);
 };
 
-Flat_map::Flat_map(Flat_map &&flat_map) : keys(nullptr),
-                                          values(nullptr),
-                                          cur_size(0),
-                                          capacity(0){
-    keys = flat_map.keys;
-    values = flat_map.values;
-    cur_size = flat_map.cur_size;
-    capacity = flat_map.capacity;
-
+Flat_map::Flat_map(Flat_map &&flat_map) : values(flat_map.values),
+                                          keys(flat_map.keys),
+                                          cur_size(flat_map.cur_size),
+                                          capacity(flat_map.capacity){
     flat_map.keys = nullptr;
     flat_map.values = nullptr;
     flat_map.cur_size = 0;
@@ -58,8 +47,7 @@ Flat_map& Flat_map::operator=(const Flat_map &flat_map){
     cur_size = flat_map.cur_size;
     capacity = flat_map.capacity;
 
-    Key *keys_new = new Key[capacity];
-    Value *values_new = new Value[capacity];
+    check_alloc_mem(keys, values, capacity);
     std::copy(flat_map.keys, flat_map.keys + cur_size, keys);
     std::copy(flat_map.values, flat_map.values + cur_size, values);
 
@@ -91,8 +79,7 @@ void Flat_map::clear(){
         return;
     delete[] keys;
     delete[] values;
-    keys = new Key[INIT_CAP];
-    values = new Value[INIT_CAP];
+    check_alloc_mem(keys, values, INIT_CAP);
     cur_size = 0;
 };
 
@@ -100,17 +87,16 @@ bool Flat_map::erase(const Key &k){
     if (empty())
         return 1;
 
-    auto k1 = std::lower_bound(keys, keys + cur_size, k);
-    if (*k1 != k)
+    Key* k1 = std::lower_bound(keys, keys + cur_size, k);
+    if (k1 == (keys + cur_size) || *k1 != k)
         return 1;
 
     int idx = std::distance(keys, k1);
     std::copy(keys + idx + 1, keys + cur_size, keys + idx);
     std::copy(values + idx + 1, values + cur_size, values + idx);
     cur_size -= 1;
-    keys[cur_size] = "";
-    values[cur_size].age = 0;
-    values[cur_size].height = 0;
+    keys[cur_size] = {};
+    values[cur_size] = {};
     return 0;
 };
 
@@ -118,8 +104,8 @@ bool Flat_map::insert(const Key &k, const Value &v){
     if (cur_size == capacity)
         expand_flat_map();
 
-    auto k1 = std::lower_bound(keys, keys + cur_size, k);
-    if (*k1 == k)
+    Key* k1 = std::lower_bound(keys, keys + cur_size, k);
+    if (k1 != (keys + cur_size) && *k1 == k) 
         return 1;
 
     int idx = std::distance(keys, k1);
@@ -136,36 +122,34 @@ bool Flat_map::contains(const Key &k){
     return !k.compare((*k1));
 };
 
-Value& Flat_map::operator[](const Key &k){ 
-    auto k1 = std::lower_bound(keys, keys + cur_size, k);
+Value& Flat_map::operator[](const Key &k){
+    Key* k1 = std::lower_bound(keys, keys + cur_size, k);
     int idx = std::distance(keys, k1);
-    if (*k1 != k)
-        (void)insert(k, {0, 0});
+    if (k1 == (keys + cur_size) || *k1 != k)
+        (void)insert(k, {});
     return values[idx];
 };
 
 Value& Flat_map::at(const Key &k){
-    auto k1 = std::lower_bound(keys, keys + cur_size, k);
-    if (*k1 != k)
-        throw std::runtime_error("Key " + k + " doesn't exist"); 
-    int idx = std::distance(keys, k1);
-    return values[idx];
-};
-
-const Value& Flat_map::at(const Key &k) const {
-    auto k1 = std::lower_bound(keys, keys + cur_size, k);
-    if (*k1 != k)
+    Key* k1 = std::lower_bound(keys, keys + cur_size, k);
+    if (k1 == (keys + cur_size) || *k1 != k)
         throw std::runtime_error("Key " + k + " doesn't exist");
     int idx = std::distance(keys, k1);
     return values[idx];
 };
 
+const Value& Flat_map::at(const Key &k) const {
+    return const_cast<Flat_map &>(*this).at(k);
+};
+
 void Flat_map::expand_flat_map(){
-    capacity *= 2;
-    Key *keys_new = new Key[capacity];
-    Value *values_new = new Value[capacity];
+    capacity *= EXPAND_FACT;
+    Value *values_new = nullptr;
+    Key *keys_new = nullptr;
+    check_alloc_mem(keys_new, values_new, capacity);
+
     std::move(keys, keys + cur_size, keys_new);
-    std::memcpy(values_new, values, cur_size * sizeof(Value)); 
+    std::copy(values, values + cur_size ,values_new);
     delete[] keys;
     delete[] values;
     keys = keys_new;
@@ -175,10 +159,8 @@ void Flat_map::expand_flat_map(){
 bool operator==(const Flat_map &a, const Flat_map &b){
     if (a.cur_size != b.cur_size)
         return 0;
-    for (size_t i = 0; i < a.cur_size; ++i){
-        if (a.keys[i] != b.keys[i] || a.values[i].age != b.values[i].age 
-                                   || a.values[i].height != b.values[i].height)
+    if (!std::equal(a.keys, a.keys + a.cur_size, b.keys) &&
+        !std::equal(a.values, a.values + a.cur_size, b.values))
             return 0;
-    }
     return 1;
 };

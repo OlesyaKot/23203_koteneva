@@ -3,11 +3,14 @@
 #include <string>
 
 typedef std::string Key;
-typedef std::size_t size_t;
 
 struct Value{
     unsigned age = 0;
     unsigned height = 0;
+
+    friend bool operator==(const Value &a, const Value &b) {
+        return ((a.age == b.age) && (a.height == b.height));
+    };
 };
 
 // This flat_map contains data about people in two arrays - 
@@ -90,8 +93,20 @@ public:
 
 private:
     static constexpr size_t INIT_CAP = 16;
+    static constexpr size_t EXPAND_FACT = 2;
     Value *values = nullptr;
     Key *keys = nullptr;
     size_t cur_size = 0;
     size_t capacity = INIT_CAP;
+
+    void check_alloc_mem(Key* &k, Value* &v, const size_t cap){
+        v = new Value[cap];
+        try{
+            k = new Key[cap];
+        }
+        catch (std::bad_alloc &a){
+            delete[] values;
+            throw a;
+        }
+    }
 };
