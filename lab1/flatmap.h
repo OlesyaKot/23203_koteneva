@@ -81,8 +81,10 @@ public:
  
     void expand_flat_map();
 
+    void check_alloc_mem(Key *&k, Value *&v, const size_t cap);
+    
     // This function verifies if two Flat_maps are equal or not
-    // If they are equal, the function returns 1
+    // If th/ey are equal, the function returns 1
     friend bool operator==(const Flat_map &a, const Flat_map &b);
 
     // This function verifies if two Flat_maps are not equal
@@ -98,15 +100,4 @@ private:
     Key *keys = nullptr;
     size_t cur_size = 0;
     size_t capacity = INIT_CAP;
-
-    void check_alloc_mem(Key* &k, Value* &v, const size_t cap){
-        v = new Value[cap];
-        try{
-            k = new Key[cap];
-        }
-        catch (std::bad_alloc &a){
-            delete[] values;
-            throw a;
-        }
-    }
 };

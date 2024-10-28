@@ -4,7 +4,6 @@
 #include <iostream>
 #include <string>
 
-
 Flat_map::Flat_map(){
     check_alloc_mem(keys, values, INIT_CAP);
 };
@@ -19,7 +18,6 @@ Flat_map::~Flat_map(){
 Flat_map::Flat_map(const Flat_map &flat_map) : cur_size(flat_map.cur_size),
                                                capacity(flat_map.capacity){
     check_alloc_mem(keys, values, cur_size);
-
     std::copy(flat_map.keys, flat_map.keys + cur_size, keys);
     std::copy(flat_map.values, flat_map.values + cur_size, values);
 };
@@ -163,4 +161,15 @@ bool operator==(const Flat_map &a, const Flat_map &b){
         !std::equal(a.values, a.values + a.cur_size, b.values))
             return 0;
     return 1;
+};
+
+void Flat_map::check_alloc_mem(Key *&k, Value *&v, const size_t cap){
+    v = new Value[cap];
+    try{
+        k = new Key[cap];
+    }
+    catch (std::bad_alloc &a){
+        delete[] values;
+        throw a;
+    }
 };
