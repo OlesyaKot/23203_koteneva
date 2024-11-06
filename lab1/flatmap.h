@@ -2,7 +2,8 @@
 
 #include <string>
 
-typedef std::string Key;
+//typedef std::string Key;
+using Key = std::string;
 
 struct Value{
     unsigned age = 0;
@@ -26,14 +27,14 @@ public:
 
     Flat_map(const Flat_map &flat_map);
 
-    Flat_map(Flat_map &&flat_map);
+    Flat_map(Flat_map &&flat_map) noexcept;
 
     // Swap for two Flat_maps
     void swap(Flat_map &flat_map);
 
     Flat_map &operator=(const Flat_map &flat_map);
 
-    Flat_map &operator=(Flat_map &&flat_map);
+    Flat_map &operator=(Flat_map &&flat_map) noexcept;
     
     // The clear function clears the contains of our Flat_map 
     void clear();
@@ -81,7 +82,7 @@ public:
  
     void expand_flat_map();
 
-    void check_alloc_mem(Key *&k, Value *&v, const size_t cap);
+    void check_alloc_mem(Key *&k, Value *&v, size_t cap);
     
     // This function verifies if two Flat_maps are equal or not
     // If th/ey are equal, the function returns 1
