@@ -2,7 +2,6 @@
 
 #include <string>
 
-//typedef std::string Key;
 using Key = std::string;
 
 struct Value{
@@ -17,7 +16,6 @@ struct Value{
 // This flat_map contains data about people in two arrays - 
 // in an array of strings the name of the person, in an array of structures, 
 // each consisting of two values of type int, the age and height of each person.
-
 class Flat_map{
 public:
 
@@ -30,7 +28,7 @@ public:
     Flat_map(Flat_map &&flat_map) noexcept;
 
     // Swap for two Flat_maps
-    void swap(Flat_map &flat_map);
+    void swap(Flat_map &flat_map) noexcept;
 
     Flat_map &operator=(const Flat_map &flat_map);
 
@@ -79,11 +77,7 @@ public:
     bool empty() const{ 
         return (cur_size == 0);
     };
- 
-    void expand_flat_map();
 
-    void check_alloc_mem(Key *&k, Value *&v, size_t cap);
-    
     // This function verifies if two Flat_maps are equal or not
     // If th/ey are equal, the function returns 1
     friend bool operator==(const Flat_map &a, const Flat_map &b);
@@ -95,6 +89,9 @@ public:
     };
 
 private:
+    void expand_flat_map();
+    auto check_alloc_mem(size_t cap);
+
     static constexpr size_t INIT_CAP = 16;
     static constexpr size_t EXPAND_FACT = 2;
     Value *values = nullptr;

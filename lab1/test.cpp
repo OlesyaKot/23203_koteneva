@@ -39,12 +39,9 @@ TEST(Group1, Insert){
 };
 
 TEST(Group1, IsEquals){
-    Flat_map f1;
-    Key k = "Anna";
-    Value v = {15, 160};
-    f1.insert(k, v);
-    Flat_map f2;
-    f2.insert(k, v);
+    Flat_map f1, f2;
+    f1.insert("Anna", {15, 160});
+    f2.insert("Anna", {15, 160});
     EXPECT_TRUE(f1 == f2);
     EXPECT_FALSE(f1 != f2);
     f1.insert("Ron", {85, 188});
@@ -52,29 +49,42 @@ TEST(Group1, IsEquals){
     f1.insert("Severus", {55, 160});
     f1.insert("Rosa", {24, 170});
     EXPECT_TRUE(f1 != f2);
-    f2.insert("Ron", {85, 188});
+    f2.insert("Ron", {40, 188});
     f2.insert("Rimus", {10, 185});
-    f2.insert("Pol", {55, 160});
-    f2.insert("Emma", {24, 170});
+    f2.insert("Severus", {55, 160});
+    f2.insert("Rosa", {24, 170});
     EXPECT_TRUE(f1 != f2);
     EXPECT_FALSE(f1 == f2);
     f2 = f1;
     EXPECT_TRUE(f1 == f2);
 
-    Flat_map f3;
+    Flat_map f3, f4;
     f3.insert("Alice", {12, 138});
-
-    Flat_map f4;
     f4.insert("Alice", {12, 138});
     for (unsigned int i = 0; i < 20; ++i){
         EXPECT_FALSE(f4.insert("Rimus" + std::to_string(i), {10 + i, 120 + i}));
     }
     EXPECT_EQ(f4.size(), 21);
+    EXPECT_FALSE(f3 == f4);
     for (unsigned int i = 0; i < 20; ++i){
         EXPECT_EQ(f4.erase("Rimus" + std::to_string(i)), 0);
     }
-
     EXPECT_TRUE(f3 == f4);
+
+    Flat_map f5, f6, f7;
+    EXPECT_TRUE(f5 == f6);
+    for (unsigned int i = 0; i < 200; ++i){
+        f6.insert("Anna" + std::to_string(i), {10 + i, 120 + i});
+    }
+    f6.clear();
+    EXPECT_TRUE(f5 == f6);
+
+    for (unsigned int i = 0; i < 100; ++i) {
+        f7.insert("Ann" + std::to_string(i), {20 + i, 120 + i});
+    }
+
+    f7.clear();
+    EXPECT_TRUE(f6 == f7);
 };
 
 TEST(Group1, Contains){
@@ -87,8 +97,10 @@ TEST(Group1, Contains){
     EXPECT_TRUE(f.contains("Anna"));
     EXPECT_TRUE(f.contains("Pol"));
     EXPECT_FALSE(f.contains("anna"));
-    f.erase("Ron");
+    EXPECT_TRUE(f.contains("Ron"));
+    EXPECT_FALSE(f.erase("Ron"));
     EXPECT_FALSE(f.contains("Ron"));
+    
     EXPECT_FALSE(f.contains("Bob"));
     f.clear();
     EXPECT_FALSE(f.contains("Emma"));
@@ -141,6 +153,7 @@ TEST(Group1, Erase){
     }
     EXPECT_TRUE(f.erase("Ula"));
     EXPECT_FALSE(f.erase("Rimus80"));
+    EXPECT_TRUE(f.erase("Rimus80"));
     EXPECT_TRUE(f.erase("Teo"));
     EXPECT_TRUE(f.erase("Emma"));
     f.empty();
@@ -245,7 +258,7 @@ TEST(Group1, OperatorAssign){
     EXPECT_TRUE(f1.size() == 0);
 
     Flat_map f2;
-    for (unsigned int i = 0; i < 200; ++i){
+    for (unsigned int i = 0; i < 400; ++i){
         EXPECT_FALSE(f.insert("Anna" + std::to_string(i), {10 + i, 120 + i}));
     }
     Flat_map f3;
