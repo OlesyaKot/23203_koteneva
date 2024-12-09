@@ -1,7 +1,6 @@
 #pragma once
 
 #include <functional>
-#include <iostream>
 #include <map>
 #include <memory>
 
@@ -33,22 +32,7 @@ class Factory {
 
 template <class T, class New_t>
 struct Creator {
-//  Creator(const std::string& name) {
-//    // std::function<Strategy*()>
-//    Factory<std::string, T, std::function<T*()>>::get_instance()->register_creator(name, []() -> auto { return new T(); });
-//  };
-//
   Creator(const std::string& name, std::function<New_t*()> func = []() -> auto { return new New_t(); }) {
     Factory<std::string, T, std::function<T*()>>::get_instance()->register_creator(name, func);
   }
 };
-//  Creator() {T*()]() -> auto
-//    // std::function<Strategy*()>
-//    Factory<string, T,
-//    std::function<T*()>>::get_instance()->register_creator("Strategy_1",
-//    []() -> auto{ return new T(); });
-//  }
-
-// enum - перечислимый тип, множество значений которого перечислен подмножеством
-// натуральных чисел enum class - это enum со строгой типизацией (нельзя
-// присвоить int без const_cast)

@@ -1,10 +1,9 @@
+#include <boost/program_options.hpp>
 #include <iostream>
 #include <string>
 #include <vector>
-#include <boost/program_options.hpp>
 
 #include "factory.h"
-#include "strategy.h"
 #include "engine.h"
 
 namespace po = boost::program_options;
@@ -44,7 +43,5 @@ int main(int argc, char** argv) {
   }
 
   auto b = Factory<std::string, Business_logic, std::function<Business_logic*()>>::get_instance()->create_by_name(vm.at("mode").as<std::string>());
-  b->game(strat);
-  // std::move
-  // если в дальнейшем они еще нужны, то передавать так: const &
+  b->game(std::move(strat), vm.at("deckmode").as<std::string>());
 }

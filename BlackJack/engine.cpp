@@ -1,90 +1,153 @@
-#include "factory.h"
-#include "strategy.h"
 #include "engine.h"
-#include "user_interface.h"
-// #include "desk.h"
-#include <functional>
+
+#include <assert.h>
+
+#include <algorithm>
+#include <iostream>
 #include <vector>
 
-// можно в main сделать стратегии и передать в движок. 
-void Competition::game(std::vector<std::string> strategies) {
+#include "factory.h"
+#include "user_interface.h"
+
+void Competition::game(std::vector<std::string> strategies, std::string deckmode) {
   User_interface user;
   try {
     s1 = Factory<std::string, Strategy, std::function<Strategy*()>>::get_instance()->create_by_name(strategies[0]);  // ? нужно ли обрабатывать, если не пришел объект из фабрики
     s2 = Factory<std::string, Strategy, std::function<Strategy*()>>::get_instance()->create_by_name(strategies[1]);  // ???????
+    deck = Factory<std::string, Deck, std::function<Deck *()>>::get_instance()->create_by_name(deckmode);
   } 
   catch (std::bad_alloc &a) {
     user.print_error();
     return;
   }
-  //std::unique_ptr<Desk> desk = Factory<std::string, Desk>::get_instance()->create_by_name(deskmode);
-  //std::vector<int> cards = desk->get_desk();
 
-  for (int i = 0; i < 21; i++) {
-    for_s1.push_back(get_card());
-    for_s2.push_back(get_card());
-  }
+  auto card_s1 = deck->get_card();
+  auto card_s2 = deck->get_card();
+//  assert((card_s1.first != Card::NO_CARD) || (card_s2.first != Card::NO_CARD));
 
-  s1->see_opposite_card(for_s1[0]);
-  s2->see_opposite_card(for_s2[0]);
+  s1->see_opposite_card(card_s2.first);
+  s2->see_opposite_card(card_s1.first);
 
   while (1) {
     if (mode == Mode::DETAILED) 
       user.print_curr_round();
 
+    card_s1.first == Card::ACE ? aces_s1++ : aces_s1;
+    card_s2.first == Card::ACE ? aces_s2++ : aces_s2;
+
     if (flag1) {
-      flag1 = s1->next_move(for_s1.back());
-      total_sum_1 += for_s1.back();
+      flag1 = s1->next_move((int)card_s1.first);
+      total_sum_1 += (int)card_s1.first;
 
-      if (mode == Mode::DETAILED)
-        user.print_curr_move(s1->get_name(), for_s1.back(), total_sum_1, s1->get_move());
+      if (mode == Mode::DETAILED){
+        if (user.is_finish()) return;
+        user.print_curr_move(s1->get_name(), card_s1.first, card_s1.second, total_sum_1, s1->get_move());
+      }
     }
 
-    if (total_sum_2 == 21 || total_sum_1 > 21) {
-      user.print_res(s2->get_name(), total_sum_2);
-      return;
-    }
+    if (check_total_sum()) return;
 
     if (flag2) {
-      flag2 = s2->next_move(for_s2.back());
-      total_sum_2 += for_s2.back();
+      flag2 = s2->next_move((int)card_s2.first);
+      total_sum_2 += (int)card_s2.first;
 
-      if (mode == Mode::DETAILED)
-        user.print_curr_move(s2->get_name(), for_s2.back(), total_sum_2, s2->get_move());
-    }
-
-    if (total_sum_1 == 21 || total_sum_2 > 21) {
-      user.print_res(s1->get_name(), total_sum_1);
-      return;
-    }
-
-    if (!flag1 && !flag2) {
-      if (total_sum_1 > total_sum_2) {
-        user.print_res(s1->get_name(), total_sum_1);
-        return;
+      if (mode == Mode::DETAILED){
+        if (user.is_finish()) return;
+        user.print_curr_move(s2->get_name(), card_s2.first, card_s2.second, total_sum_2, s2->get_move());
       }
-      user.print_res(s2->get_name(), total_sum_2);
-      return;
     }
+
+    if (check_total_sum()) return;
+
+    card_s1 = deck->get_card();
+    card_s2 = deck->get_card();
+ //   assert((card_s1.first == Card::NO_CARD) || (card_s2.first == Card::NO_CARD));
   }
-  for_s1.pop_back();
-  for_s2.pop_back();
 };
 
-void Tournament::game(std::vector<std::string> strategies) {
+bool Competition::check_total_sum() {
   User_interface user;
-  int game_score[strategies.size() + 1];
 
-  for (int i = 0; i < strategies.size(); ++i) {
-    for (int j = 0; j < strategies.size(); ++j) {
+  if (total_sum_1 == 21) {
+    if (mode == Mode::DETAILED && user.is_finish()) return 1;
+    winner = s1->get_name();
+    user.print_res(winner, total_sum_1);
+    return 1;
+  }
+
+  if (total_sum_1 > 21) {
+    if (mode == Mode::DETAILED && user.is_finish()) return 1;
+
+    if (aces_s1){
+      total_sum_1 -= 10;
+      s1->consider_ace();
+      return 0;
+    }
+
+    winner = s2->get_name();
+    user.print_res(winner, total_sum_2);
+    return 1;
+  }
+
+  if (total_sum_2 == 21) {
+    if (mode == Mode::DETAILED && user.is_finish()) return 1;
+    winner = s2->get_name();
+    user.print_res(winner, total_sum_2);
+    return 1;
+  }
+
+  if (total_sum_2 > 21) {
+    if (mode == Mode::DETAILED && user.is_finish()) return 1;
+    if (aces_s2) {
+      total_sum_2 -= 10;
+      s2->consider_ace();
+      return 0;
+    }
+
+    winner = s1->get_name();
+    user.print_res(winner, total_sum_1);
+    return 1;
+  }
+
+  if (!flag1 && !flag2) {
+    if (mode == Mode::DETAILED && user.is_finish()) return 1;
+    if (total_sum_1 > total_sum_2) {
+      winner = s1->get_name();
+      user.print_res(winner, total_sum_1);
+      return 1;
+    }
+    winner = s2->get_name();
+    user.print_res(winner, total_sum_2);
+    return 1;
+  }
+  return 0;
+}
+
+void Tournament::game(std::vector<std::string> strategies, std::string deckmode) {
+  User_interface user;
+
+  for (size_t i = 0; i < strategies.size(); ++i) {
+    for (size_t j = 0; j < strategies.size(); ++j) {
       if (i == j) continue;
       user.print_pair(strategies[i], strategies[j]);
       Competition c(Mode::FAST);
       std::vector<std::string> v;
       v.push_back(strategies[i]);
       v.push_back(strategies[j]);
-      c.game(v);
+      c.game(v, deckmode);
+      game_score[c.get_winner()]++;
     }
+  }
+
+  user.print_winner_string();
+
+  std::transform(game_score.begin(), game_score.end(), std::back_inserter(score), [](const std::pair<std::string, int> &pair) { return pair; });
+  std::move(game_score.begin(), game_score.end(), score.begin());
+  std::sort(score.begin(), score.end(), [](auto a, auto b) { return a.second >= b.second; });
+  const int max_score = score[0].second;
+  for (auto &s : score) {
+    if (s.second == max_score) 
+      user.print_winner(s.first);
   }
 }
 
@@ -92,13 +155,4 @@ namespace {
   Creator<Business_logic, Competition> a{"fast", []() -> auto { return new Competition(Mode::FAST); }};
   Creator<Business_logic, Competition> b{"detailed", []() -> auto { return new Competition(Mode::DETAILED); }};
   Creator<Business_logic, Tournament> c{"tournament"};
-}
-
-static constexpr int FACT_CARD = 11;
-  int get_card() {
-    while (true) {
-      int c = rand() % FACT_CARD;
-      if (c == 0) continue;
-      return c;
-     }
 }

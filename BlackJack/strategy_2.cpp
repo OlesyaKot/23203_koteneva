@@ -1,21 +1,20 @@
 #include "strategy_2.h"
 #include "factory.h"
 // берет всегда 3 карты
-#include <functional>
 
+void Strategy_2::see_opposite_card([[maybe_unused]] Card c) {}
 
-void Strategy_2::see_opposite_card(int card) {}
+void Strategy_2::consider_ace() {};
 
-int Strategy_2::next_move(int card) {
-  total_sum += card;
+bool Strategy_2::next_move([[maybe_unused]] int card) {
   num_card++;
   move = num_card < 3;
   return move;
 }
 
-std::string Strategy_2::get_name() { return "strategy 2"; }
+const std::string Strategy_2::get_name() { return "strategy 2"; }
 
-std::string Strategy_2::get_move() {
+const std::string Strategy_2::get_move() {
   if (move) return "hit";
   return "stand";
 }
