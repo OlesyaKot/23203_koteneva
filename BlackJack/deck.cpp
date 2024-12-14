@@ -1,6 +1,7 @@
 #include "deck.h"
 
 #include <algorithm>
+#include <stdexcept>
 #include <string>
 
 #include "factory.h"
@@ -13,13 +14,13 @@ const std::pair<Card, Suit> Simple_deck::get_card() {
   }
 }
 
-N_deck::N_deck(std::string m){
-  NUM_DECK = std::stoi(m);
-  for (int i = 0; i < NUM_DECK; ++i) {
+N_deck::N_deck(int num_decks){
+  if (num_decks <= 0) throw std::invalid_argument("Number of decks must be more than zero");
+  for (int i = 0; i < num_decks; ++i) {
     for (const auto& suit : Suits) {
       for (const auto& card : Cards) {
-        if (suit.second != "1")
-          deck.push_back(std::make_pair(card.first, suit.first));
+        if (suit.second == "1") continue;
+        deck.push_back(std::make_pair(card.first, suit.first));
       }
     }
   }
@@ -33,6 +34,7 @@ const std::pair<Card, Suit> N_deck::get_card() {
 }
 
 namespace {
-  Creator<Deck, Simple_deck> a{"simple", []() -> auto { return new Simple_deck(); }};
-  Creator<Deck, N_deck> b{"2", []() -> auto { return new N_deck("2"); }};
+  Creator<Deck, Simple_deck, int> a{"simple", [](int N) -> auto { return new Simple_deck(); }};
+  Creator<Deck, N_deck, int> b{"multiple"};
+  Creator<Deck, N_deck, int> m{"my_deck"};
 }

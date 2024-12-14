@@ -1,29 +1,38 @@
 #include "engine.h"
 
-#include <assert.h>
-
 #include <algorithm>
 #include <iostream>
+#include <stdexcept>
 #include <vector>
 
 #include "factory.h"
 #include "user_interface.h"
 
-void Competition::game(std::vector<std::string> strategies, std::string deckmode) {
+void Competition::game(std::vector<std::string> strategies, std::string deckmode, std::string config, int N) {
   User_interface user;
+  
   try {
-    s1 = Factory<std::string, Strategy, std::function<Strategy*()>>::get_instance()->create_by_name(strategies[0]);  // ? нужно ли обрабатывать, если не пришел объект из фабрики
-    s2 = Factory<std::string, Strategy, std::function<Strategy*()>>::get_instance()->create_by_name(strategies[1]);  // ???????
-    deck = Factory<std::string, Deck, std::function<Deck *()>>::get_instance()->create_by_name(deckmode);
-  } 
-  catch (std::bad_alloc &a) {
+    s1 = Factory<std::string, Strategy, std::function<Strategy*()>>::get_instance()->create_by_name(strategies[0]);  
+    s2 = Factory<std::string, Strategy, std::function<Strategy*()>>::get_instance()->create_by_name(strategies[1]);  
+    deck = Factory<std::string, Deck, std::function<Deck*(int)>>::get_instance()->create_by_name(deckmode, N);
+  } catch (const std::bad_alloc &a) {
     user.print_error();
+    return;
+  } catch (const std::invalid_argument &a){
+    user.print_invalid_arg_error(a.what());
+    return;
+  }
+
+  try{
+    s1->get_data_from_config(config);
+    s2->get_data_from_config(config);
+  } catch (std::ios_base::failure& f){
+    user.print_config_error();
     return;
   }
 
   auto card_s1 = deck->get_card();
   auto card_s2 = deck->get_card();
-//  assert((card_s1.first != Card::NO_CARD) || (card_s2.first != Card::NO_CARD));
 
   s1->see_opposite_card(card_s2.first);
   s2->see_opposite_card(card_s1.first);
@@ -61,7 +70,6 @@ void Competition::game(std::vector<std::string> strategies, std::string deckmode
 
     card_s1 = deck->get_card();
     card_s2 = deck->get_card();
- //   assert((card_s1.first == Card::NO_CARD) || (card_s2.first == Card::NO_CARD));
   }
 };
 
@@ -116,14 +124,20 @@ bool Competition::check_total_sum() {
       user.print_res(winner, total_sum_1);
       return 1;
     }
-    winner = s2->get_name();
-    user.print_res(winner, total_sum_2);
+    if (total_sum_2 > total_sum_1){
+      winner = s2->get_name();
+      user.print_res(winner, total_sum_2);
+      return 1;
+    }
+    winner = {};  // случай если ничья, в турнире никому не прибавляется очки за победу 
+    user.print_winner_string();
+    user.print_res_draw(total_sum_1);
     return 1;
   }
   return 0;
 }
 
-void Tournament::game(std::vector<std::string> strategies, std::string deckmode) {
+void Tournament::game(std::vector<std::string> strategies, std::string deckmode, std::string config, int N) {
   User_interface user;
 
   for (size_t i = 0; i < strategies.size(); ++i) {
@@ -134,7 +148,8 @@ void Tournament::game(std::vector<std::string> strategies, std::string deckmode)
       std::vector<std::string> v;
       v.push_back(strategies[i]);
       v.push_back(strategies[j]);
-      c.game(v, deckmode);
+      c.game(v, deckmode, config, N);
+      if (c.get_winner() == "") continue;
       game_score[c.get_winner()]++;
     }
   }

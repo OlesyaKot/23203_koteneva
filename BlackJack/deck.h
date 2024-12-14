@@ -20,12 +20,11 @@ class Simple_deck : public Deck {
 
 class N_deck : public Deck {
  public:
-  N_deck(std::string m);
+  N_deck(int num_decks);
   const std::pair<Card, Suit> get_card() override;
 
  private:
   std::vector<std::pair<Card, Suit>> deck;
-  int NUM_DECK = 0;
 };
 
 // если пустая колода - написать в первой строке assert(!deck.empty());   // #include <assert.h> 

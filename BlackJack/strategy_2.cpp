@@ -1,23 +1,33 @@
-#include "strategy_2.h"
+#include "strategy.h"
+
 #include "factory.h"
 // берет всегда 3 карты
 
-void Strategy_2::see_opposite_card([[maybe_unused]] Card c) {}
+class Strategy_2 : public Strategy{
+ public:
+  void see_opposite_card([[maybe_unused]] Card c) override {}
 
-void Strategy_2::consider_ace() {};
+  void consider_ace() override {}
 
-bool Strategy_2::next_move([[maybe_unused]] int card) {
-  num_card++;
-  move = num_card < 3;
-  return move;
-}
+  void get_data_from_config([[maybe_unused]] const std::string path) override {}
 
-const std::string Strategy_2::get_name() { return "strategy 2"; }
+  bool next_move([[maybe_unused]] int card) override {
+    num_card++;
+    move = num_card < 3;
+    return move;
+  }
 
-const std::string Strategy_2::get_move() {
-  if (move) return "hit";
-  return "stand";
-}
+  const std::string get_name() override { return "strategy 2"; }
+
+  const std::string get_move() override {
+    if (move) return "hit";
+    return "stand";
+  }
+
+ private:
+  int num_card = 0;
+  bool move = 0;
+};
 
 namespace {
 Creator<Strategy, Strategy_2> c("strategy_2");

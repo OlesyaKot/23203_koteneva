@@ -15,16 +15,18 @@ enum class Mode {
 
 class Business_logic{
   public:
-    virtual void game(std::vector<std::string> strategies, std::string deckmode) = 0;
+    virtual void game(std::vector<std::string> strategies, std::string deckmode, std::string config, int N) = 0;
 };
 
 class Competition : public Business_logic {
  public:
   Competition(Mode m): mode(m) {};
 
-  void game(std::vector<std::string> strategies, std::string deckmode) override;
+  void game(std::vector<std::string> strategies, std::string deckmode, std::string config, int N) override;
 
-  const std::string get_winner() { return winner; }
+  const std::string get_winner() { 
+    return winner; 
+    }
 
   bool check_total_sum();
 
@@ -45,7 +47,7 @@ class Competition : public Business_logic {
 
 class Tournament : public Business_logic {
  public:
-  void game(std::vector<std::string> strategies, std::string deckmode) override;
+  void game(std::vector<std::string> strategies, std::string deckmode, std::string config, int N) override;
  private:
   std::map<std::string, int> game_score;
   std::vector<std::pair<std::string, int>> score;
