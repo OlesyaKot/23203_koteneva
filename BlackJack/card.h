@@ -9,7 +9,7 @@ enum class Suit {
   SPADES,
 };
 
-enum class Card : int {
+enum class Card {
   ONE,
   TWO,
   THREE,
@@ -24,7 +24,7 @@ enum class Card : int {
   QUEEN,
   KING,
   ACE,
-  NO_CARD = 0,
+//  NO_CARD = 0,
 };
 
 const std::map<Suit, std::string> Suits = {{Suit::DIAMONDS, "diamonds"},

@@ -71,7 +71,7 @@ class Competition : public Business_logic {
 
 class Tournament : public Business_logic {
  public:
-  void game(std::vector<Strategy *> strategies, Deck * deckmode, const std::string &config) override;
+  void game(std::vector<Strategy *> strategies, Deck* deckmode, const std::string &config) override;
  private:
   std::map<std::string, int> game_score;
   std::vector<std::pair<std::string, int>> score;
