@@ -15,6 +15,10 @@ class Factory {
     return &f;
   }
 
+  Factory(const Factory& f) = delete;
+
+  Factory& operator=(const Factory& f) = delete;
+
   bool register_creator(const Key &name, Func creators) {
     creators_[name] = creators;
     return true;
@@ -23,19 +27,14 @@ class Factory {
   template <class... ParamTypes>
 
   std::unique_ptr<Type> create_by_name(Key name, ParamTypes&&... parameters) {
-    try {
-      p = creators_.at(name)(std::forward<ParamTypes>(parameters)...);
-    } catch (std::out_of_range& a) {
-      throw std::invalid_argument("Invalid name of " + name);
-    };
-
-    std::unique_ptr<Type> u_ptr{p};
+    auto p = creators_.at(name)(std::forward<ParamTypes>(parameters)...);
+    std::unique_ptr<Type> u_ptr{p};   
     return u_ptr;
   }
 
  private:
+  Factory() = default;
   std::map<Key, Func> creators_;
-  Type* p;
 };
 
 template <class T, class New_t, class... ParamTypes>

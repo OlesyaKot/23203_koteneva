@@ -14,15 +14,17 @@
 
 class Strategy_4 : public Strategy{
  public:
-  void see_opposite_card(Card c) override {
+  void see_opposite_card(int c) override {
     opposite_card = c;
-    update_chance_to_win((int)opposite_card);
+    update_chance_to_win(opposite_card);
   }
 
-  bool next_move(int card) override {  
+  Move next_move(int card) override {  
     update_chance_to_win(card);
     move = chance_to_win > EXTREAM_VALUE;
-    return move;
+
+    if (move) return Move::HIT;
+    return Move::STAND;
   }
 
   void update_chance_to_win(int card) {
@@ -32,11 +34,19 @@ class Strategy_4 : public Strategy{
 
   void consider_ace() override {}
 
-  void get_data_from_config(const std::string path) override {
+  void reset() override {
+    move = 0;
+    opposite_card = 0;
+    chance_to_win = 0;
+  }
+
+  void get_data_from_config(const std::string &path) override {
+    std::ifstream in;
     in.open(path + "strategy_4_config.txt");
     in.exceptions(std::ifstream::failbit);
     in.exceptions(std::ifstream::badbit);
 
+    std::string input_str;
     std::getline(in, input_str);
     s.str(input_str);
     LOWER_LIMIT = get_int_data();
@@ -44,31 +54,22 @@ class Strategy_4 : public Strategy{
     UPPER_LIMIT = get_int_data();
     EXTREAM_VALUE = get_int_data();
     DELETE_ACE = get_int_data();
-  
-    in.close();
   }
 
   int get_int_data(){
+    std::string tmp;
     std::getline(s, tmp, ' ');
     return std::stoi(tmp);
   }
 
-  const std::string get_name() override { return "strategy 4"; }
-
-  const std::string get_move() override {
-    if (move) return "hit";
-    return "stand";
-  }
+  std::string get_name() override { return "strategy 4"; }
 
  private:
   bool move = 0;
-  Card opposite_card;
+  int opposite_card = 0;
   int chance_to_win = 0;
 
   std::istringstream s;
-  std::ifstream in;
-  std::string input_str;
-  std::string tmp;
   int LOWER_LIMIT = 0;
   int UPPER_LIMIT = 0;
   int AVERAGE_LIMIT = 0;

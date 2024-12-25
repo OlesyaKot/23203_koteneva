@@ -5,28 +5,29 @@
 
 class Strategy_6 : public Strategy {
  public:
-  void see_opposite_card(Card c) override { opposite_card = c; }
+  void see_opposite_card(int c) override { opposite_card = c; }
 
-  bool next_move(int card) override {
-    move = (Card)card != opposite_card;
+  Move next_move(int card) override {
+    move = card != opposite_card;
 
-    return move;
+    if (move) return Move::HIT;
+    return Move::STAND;
   }
 
-  const std::string get_name() override { return "strategy 6"; }
-
-  const std::string get_move() override {
-    if (move) return "hit";
-    return "stand";
+  void reset() override {
+    move = 0;
+    opposite_card = 0;
   }
+
+  std::string get_name() override { return "strategy 6"; }
 
   void consider_ace() override {};
 
-  void get_data_from_config([[maybe_unused]] const std::string path) override {}
+  void get_data_from_config([[maybe_unused]] const std::string &path) override {}
 
  private:
   bool move = 0;
-  Card opposite_card;
+  int opposite_card = 0;
 };
 
 namespace {

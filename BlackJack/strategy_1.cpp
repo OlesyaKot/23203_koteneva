@@ -3,15 +3,17 @@
 #include "factory.h"
 // если в сумме > 17 очков, то больше не брать карту
 
-bool Strategy_1::next_move(int card){
+Move Strategy_1::next_move(int card){
   total_sum += card;
-  move = total_sum < 17;
-  return move;
+  move = total_sum < MAX_NUM;
+
+  if (move) return Move::HIT;
+  return Move::STAND;
 }
 
-const std::string Strategy_1::get_move(){
-  if (move) return "hit";
-  return "stand";
+void Strategy_1::reset(){
+  total_sum = 0;
+  move = 0;
 }
 
 namespace {

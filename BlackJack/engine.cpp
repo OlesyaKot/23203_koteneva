@@ -1,32 +1,25 @@
 #include "engine.h"
 
 #include <algorithm>
+#include <cassert>
 #include <iostream>
 #include <stdexcept>
-#include <vector>
+#include <string_view>
 
 #include "factory.h"
 #include "user_interface.h"
 
-void Competition::game(std::vector<std::string> strategies, std::string deckmode, std::string config, int N) {
+void Competition::game(std::vector<Strategy *> strategies, Deck * deck, const std::string &config) {
   User_interface user;
-  
-  try {
-    s1 = Factory<std::string, Strategy, std::function<Strategy*()>>::get_instance()->create_by_name(strategies[0]);  
-    s2 = Factory<std::string, Strategy, std::function<Strategy*()>>::get_instance()->create_by_name(strategies[1]);  
-    deck = Factory<std::string, Deck, std::function<Deck*(int)>>::get_instance()->create_by_name(deckmode, N);
-  } catch (const std::bad_alloc &a) {
-    user.print_error();
-    return;
-  } catch (const std::invalid_argument &a){
-    user.print_invalid_arg_error(a.what());
-    return;
-  }
 
-  try{
+  assert(strategies.size() == 2);
+  s1 = strategies[0];
+  s2 = strategies[1];
+
+  try {
     s1->get_data_from_config(config);
     s2->get_data_from_config(config);
-  } catch (std::ios_base::failure& f){
+  } catch (std::ios_base::failure &f) {
     user.print_config_error();
     return;
   }
@@ -34,8 +27,8 @@ void Competition::game(std::vector<std::string> strategies, std::string deckmode
   auto card_s1 = deck->get_card();
   auto card_s2 = deck->get_card();
 
-  s1->see_opposite_card(card_s2.first);
-  s2->see_opposite_card(card_s1.first);
+  s1->see_opposite_card(get_int_card(card_s2.first));
+  s2->see_opposite_card(get_int_card(card_s1.first));
 
   while (1) {
     if (mode == Mode::DETAILED) 
@@ -44,25 +37,25 @@ void Competition::game(std::vector<std::string> strategies, std::string deckmode
     card_s1.first == Card::ACE ? aces_s1++ : aces_s1;
     card_s2.first == Card::ACE ? aces_s2++ : aces_s2;
 
-    if (flag1) {
-      flag1 = s1->next_move((int)card_s1.first);
-      total_sum_1 += (int)card_s1.first;
+    if (flag1 == Move::HIT) {
+      flag1 = s1->next_move(get_int_card(card_s1.first));
+      total_sum_1 += get_int_card(card_s1.first);
 
       if (mode == Mode::DETAILED){
         if (user.is_finish()) return;
-        user.print_curr_move(s1->get_name(), card_s1.first, card_s1.second, total_sum_1, s1->get_move());
+        user.print_curr_move(s1->get_name(), card_s1.first, card_s1.second, total_sum_1, flag1);
       }
     }
 
     if (check_total_sum()) return;
 
-    if (flag2) {
-      flag2 = s2->next_move((int)card_s2.first);
-      total_sum_2 += (int)card_s2.first;
+    if (flag2 == Move::HIT) {
+      flag2 = s2->next_move(get_int_card(card_s2.first));
+      total_sum_2 += get_int_card(card_s2.first);
 
       if (mode == Mode::DETAILED){
         if (user.is_finish()) return;
-        user.print_curr_move(s2->get_name(), card_s2.first, card_s2.second, total_sum_2, s2->get_move());
+        user.print_curr_move(s2->get_name(), card_s2.first, card_s2.second, total_sum_2, flag2);
       }
     }
 
@@ -89,6 +82,7 @@ bool Competition::check_total_sum() {
     if (aces_s1){
       total_sum_1 -= 10;
       s1->consider_ace();
+      aces_s1--;
       return 0;
     }
 
@@ -109,6 +103,7 @@ bool Competition::check_total_sum() {
     if (aces_s2) {
       total_sum_2 -= 10;
       s2->consider_ace();
+      aces_s2--;
       return 0;
     }
 
@@ -117,7 +112,7 @@ bool Competition::check_total_sum() {
     return 1;
   }
 
-  if (!flag1 && !flag2) {
+  if (flag1 == Move::STAND && flag2 == Move::STAND) {
     if (mode == Mode::DETAILED && user.is_finish()) return 1;
     if (total_sum_1 > total_sum_2) {
       winner = s1->get_name();
@@ -137,20 +132,23 @@ bool Competition::check_total_sum() {
   return 0;
 }
 
-void Tournament::game(std::vector<std::string> strategies, std::string deckmode, std::string config, int N) {
+void Tournament::game(std::vector<Strategy *> strategies, Deck * deck, const std::string &config) {
   User_interface user;
 
   for (size_t i = 0; i < strategies.size(); ++i) {
     for (size_t j = 0; j < strategies.size(); ++j) {
       if (i == j) continue;
-      user.print_pair(strategies[i], strategies[j]);
+      user.print_pair(strategies[i]->get_name(), strategies[j]->get_name());
       Competition c(Mode::FAST);
-      std::vector<std::string> v;
+      std::vector<Strategy *> v;
       v.push_back(strategies[i]);
       v.push_back(strategies[j]);
-      c.game(v, deckmode, config, N);
+      c.game(v, deck, config);
       if (c.get_winner() == "") continue;
       game_score[c.get_winner()]++;
+      strategies[i]->reset();
+      strategies[j]->reset();
+      deck->reset();
     }
   }
 

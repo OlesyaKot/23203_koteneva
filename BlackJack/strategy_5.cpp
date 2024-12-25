@@ -11,23 +11,34 @@
 
 class Strategy_5 : public Strategy {
  public:
-  void see_opposite_card(Card c) override {
-    opposite_card = (int)c;
+  void see_opposite_card(int c) override {
+    opposite_card = c;
     t_sum_with_op_card += opposite_card;
   }
 
-  bool next_move(int card) override {
+  Move next_move(int card) override {
     t_sum_with_op_card += card;
     if (opposite_card >= MAX_OP_CARD) move = t_sum_with_op_card < UPPER_LIMIT;
     if (opposite_card > MIN_OP_CARD && opposite_card < MAX_OP_CARD) move = t_sum_with_op_card < AVERAGE_LIMIT;
     if (opposite_card <= MIN_OP_CARD) move = t_sum_with_op_card < LOWER_LIMIT;
-    return move;
+
+    if (move) return Move::HIT;
+    return Move::STAND;
   }
 
-  void get_data_from_config(const std::string path) override {
+  void reset() override {
+    t_sum_with_op_card = 0;
+    move = 0;
+    opposite_card = 0;
+  }
+
+  void get_data_from_config(const std::string &path) override {
+    std::ifstream in;
     in.open(path + "strategy_5_config.txt");
     in.exceptions(std::ifstream::failbit);
     in.exceptions(std::ifstream::badbit);
+
+    std::string input_str;
     std::getline(in, input_str);
     s.str(input_str);
 
@@ -37,23 +48,17 @@ class Strategy_5 : public Strategy {
     AVERAGE_LIMIT = get_int_data();
     UPPER_LIMIT = get_int_data();
     DELETE_ACE = get_int_data();
-  
-    in.close();
   }
 
   int get_int_data() {
+    std::string tmp;
     std::getline(s, tmp, ' ');
     return std::stoi(tmp);
   }
 
   void consider_ace() override { t_sum_with_op_card -= DELETE_ACE; }
 
-  const std::string get_name() override { return "strategy 5"; }
-
-  const std::string get_move() override {
-    if (move) return "hit";
-    return "stand";
-  }
+  std::string get_name() override { return "strategy 5"; }
 
  private:
   int t_sum_with_op_card = 0;
@@ -61,10 +66,6 @@ class Strategy_5 : public Strategy {
   int opposite_card = 0;
 
   std::istringstream s;
-  std::ifstream in;
-  std::string input_str;
-  std::string tmp;
-
   int MIN_OP_CARD = 0;
   int MAX_OP_CARD = 0;
   int LOWER_LIMIT = 0;

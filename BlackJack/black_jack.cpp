@@ -3,8 +3,10 @@
 #include <string>
 #include <vector>
 
-#include "factory.h"
 #include "engine.h"
+#include "factory.h"
+#include "user_interface.h"
+#include "deck.h"
 
 namespace po = boost::program_options;
 
@@ -39,7 +41,7 @@ int main(int argc, char** argv) {
   }
 
   if (!vm.count("mode")){
-    mode = strategies.size() > 2 ? "tournamet" : "detailed";
+    mode = strategies.size() > 2 ? "tournament" : "detailed";
   }
 
   if (strategies.size() > 2 && mode != "tournament") {
@@ -49,6 +51,50 @@ int main(int argc, char** argv) {
     return 1;
   }
 
+  User_interface user;
+  if (vm.at("N").as<int>() <= 0){
+    user.print_deck_error();
+    return 0;
+  }
+
+  std::vector<std::unique_ptr<Strategy>> u_strategy;
+
+  for (const auto &strategy : strategies){
+    std::unique_ptr<Strategy> s;
+    try {
+      s = Factory<std::string, Strategy, std::function<Strategy *()>>::get_instance()->create_by_name(strategy);
+
+    } catch (const std::bad_alloc &a) {
+      user.print_error();
+      return 0;
+    } catch (const std::invalid_argument &a) {
+      user.print_invalid_arg_error(a.what());
+      return 0;
+    } catch (const std::out_of_range &a) {
+      user.print_invalid_arg_error("Invalid name of " + strategy);
+      return 0;
+    };
+
+    u_strategy.push_back(std::move(s));
+  }
+
+  std::unique_ptr<Deck> d;
+  try {
+    d = Factory<std::string, Deck, std::function<Deck *(int)>>::get_instance()->create_by_name(vm.at("deckmode").as<std::string>(), vm.at("N").as<int>());
+  } catch (const std::bad_alloc &a) {
+    user.print_error();
+    return 0;
+  } catch (const std::invalid_argument &a) {
+    user.print_invalid_arg_error(a.what());
+    return 0;
+  } catch (const std::out_of_range &a) {
+    user.print_invalid_arg_error("Invalid name of " + vm.at("deckmode").as<std::string>());
+    return 0;
+  };
+
+  std::vector<Strategy *> strategy_ptr;
+  std::transform(u_strategy.begin(), u_strategy.end(), std::back_inserter(strategy_ptr), [](auto& p) { return p.get(); });
+
   auto b = Factory<std::string, Business_logic, std::function<Business_logic*()>>::get_instance()->create_by_name(vm.at("mode").as<std::string>());
-  b->game(std::move(strategies), vm.at("deckmode").as<std::string>(), std::move(config), vm.at("N").as<int>());
+  b->game(std::move(strategy_ptr), d.get(), std::move(config));
 }
