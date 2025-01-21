@@ -18,7 +18,15 @@ public:
 
     void mousePressEvent(QMouseEvent* event) override;
 
+    void mouseMoveEvent( [[maybe_unused]] QMouseEvent* event) override;
+
+    void mouseReleaseEvent(QMouseEvent* event) override;
+
     void Reset();
+
+    void SetPaint(){
+        is_paint = false;
+    }
 
     void Play(){
         timer.start();
@@ -52,6 +60,7 @@ private:
     int height_p;
     int offset_h = 0;
     int offset_v = 0;
+    bool is_paint = false;
 };
 
 #endif // FIELD_H

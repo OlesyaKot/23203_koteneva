@@ -17,6 +17,10 @@ public:
         curr_vect.assign(v_size, false);
     }
 
+    bool SellState(int idx){
+        return curr_vect[idx];
+    }
+
     void Game();
 
 private:

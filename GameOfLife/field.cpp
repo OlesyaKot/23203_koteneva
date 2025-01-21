@@ -54,8 +54,28 @@ void Field::mousePressEvent(QMouseEvent* event){
     }
 }
 
+void Field::mouseMoveEvent(QMouseEvent* event) {
+    if (offset_h <= event->x() && event->x() < length_p + offset_h &&
+            offset_v <= event->y() && event->y() < height_p + offset_v && !IsPlay()){
+        int idx = ((event->y() - offset_v) / CELL_SIZE * length_c + (event->x() - offset_h) / CELL_SIZE);
+        if (is_paint){
+            if (!engine.SellState(idx)) return;
+        }
+        else {
+            if (engine.SellState(idx)) return;
+        }
+        engine.SetSell(idx);
+        update();
+    }
+}
+
+void Field::mouseReleaseEvent( [[maybe_unused]] QMouseEvent* event){
+    is_paint ? is_paint = false : is_paint = true;
+}
+
 void Field::Reset(){
     Stop();
+    SetPaint();
     engine.Reset();
     update();
 }

@@ -40,6 +40,7 @@ void MainWindow::on_pushButton_3_clicked(){
 void MainWindow::on_pushButton_4_clicked(){ // play
     if (f->IsPlay()){
         ui->pushButton_4->setText("Play");
+        f->SetPaint();
         f->Stop();
         return;
     }
