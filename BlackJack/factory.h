@@ -16,7 +16,7 @@ class Factory {
   }
 
   Factory(const Factory& f) = delete;
-
+ 
   Factory& operator=(const Factory& f) = delete;
 
   bool register_creator(const Key &name, Func creators) {

@@ -9,20 +9,12 @@
 #include "factory.h"
 #include "user_interface.h"
 
-void Competition::game(std::vector<Strategy *> strategies, Deck * deck, const std::string &config) {
+void Competition::game(std::vector<Strategy *> strategies, Deck * deck) {
   User_interface user;
 
   assert(strategies.size() == 2);
   s1 = strategies[0];
   s2 = strategies[1];
-
-  try {
-    s1->get_data_from_config(config);
-    s2->get_data_from_config(config);
-  } catch (std::ios_base::failure &f) {
-    user.print_config_error();
-    return;
-  }
 
   auto card_s1 = deck->get_card();
   auto card_s2 = deck->get_card();
@@ -132,7 +124,7 @@ bool Competition::check_total_sum() {
   return 0;
 }
 
-void Tournament::game(std::vector<Strategy *> strategies, Deck * deck, const std::string &config) {
+void Tournament::game(std::vector<Strategy *> strategies, Deck * deck) {
   User_interface user;
 
   for (size_t i = 0; i < strategies.size(); ++i) {
@@ -143,7 +135,7 @@ void Tournament::game(std::vector<Strategy *> strategies, Deck * deck, const std
       std::vector<Strategy *> v;
       v.push_back(strategies[i]);
       v.push_back(strategies[j]);
-      c.game(v, deck, config);
+      c.game(v, deck);
       if (c.get_winner() == "") continue;
       game_score[c.get_winner()]++;
       strategies[i]->reset();
@@ -151,7 +143,6 @@ void Tournament::game(std::vector<Strategy *> strategies, Deck * deck, const std
       deck->reset();
     }
   }
-
   user.print_winner_string();
 
   std::transform(game_score.begin(), game_score.end(), std::back_inserter(score), [](const std::pair<std::string, int> &pair) { return pair; });

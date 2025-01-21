@@ -1,7 +1,7 @@
 #include "strategy_3.h"
 
 #include "factory.h"
-// если у противника нdминал первой карты >= 9, то берем 4 карты, иначе 5
+// если у противника номинал первой карты >= 9, то берем 4 карты, иначе 5
 
 Move Strategy_3::next_move([[maybe_unused]] int card){
   num_card++;

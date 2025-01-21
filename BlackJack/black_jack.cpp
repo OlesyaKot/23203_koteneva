@@ -74,7 +74,13 @@ int main(int argc, char** argv) {
       user.print_invalid_arg_error("Invalid name of " + strategy);
       return 0;
     };
-
+    
+    try {
+      s->get_data_from_config(config);
+    } catch (std::ios_base::failure &f) {
+      user.print_config_error();
+      return 0;
+    }
     u_strategy.push_back(std::move(s));
   }
 
@@ -95,6 +101,19 @@ int main(int argc, char** argv) {
   std::vector<Strategy *> strategy_ptr;
   std::transform(u_strategy.begin(), u_strategy.end(), std::back_inserter(strategy_ptr), [](auto& p) { return p.get(); });
 
-  auto b = Factory<std::string, Business_logic, std::function<Business_logic*()>>::get_instance()->create_by_name(vm.at("mode").as<std::string>());
-  b->game(std::move(strategy_ptr), d.get(), std::move(config));
+  std::unique_ptr<Business_logic> b;
+  try {
+    b = Factory<std::string, Business_logic, std::function<Business_logic*()>>::get_instance()->create_by_name(vm.at("mode").as<std::string>());
+  } catch (const std::bad_alloc &a) {
+    user.print_error();
+    return 0;
+  } catch (const std::invalid_argument &a) {
+    user.print_invalid_arg_error(a.what());
+    return 0;
+  } catch (const std::out_of_range &a) {
+    user.print_invalid_arg_error("Invalid name of " + vm.at("mode").as<std::string>());
+    return 0;
+  };
+
+  b->game(std::move(strategy_ptr), d.get());
 }

@@ -24,7 +24,6 @@ enum class Card {
   QUEEN,
   KING,
   ACE,
-//  NO_CARD = 0,
 };
 
 const std::map<Suit, std::string> Suits = {{Suit::DIAMONDS, "diamonds"},

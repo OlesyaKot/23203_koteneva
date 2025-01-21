@@ -17,7 +17,7 @@ enum class Mode {
 
 class Business_logic{
   public:
-    virtual void game(std::vector<Strategy*> strategies, Deck* deckmode, const std::string &config) = 0;
+    virtual void game(std::vector<Strategy*> strategies, Deck* deckmode) = 0;
 
     virtual ~Business_logic() = default; 
 };
@@ -26,7 +26,7 @@ class Competition : public Business_logic {
  public:
   Competition(Mode m): mode(m) {};
 
-  void game(std::vector<Strategy*> strategies, Deck* deckmode, const std::string &config) override;
+  void game(std::vector<Strategy*> strategies, Deck* deckmode) override;
 
   const std::string get_winner() { 
     return winner; 
@@ -71,7 +71,7 @@ class Competition : public Business_logic {
 
 class Tournament : public Business_logic {
  public:
-  void game(std::vector<Strategy *> strategies, Deck* deckmode, const std::string &config) override;
+  void game(std::vector<Strategy *> strategies, Deck* deckmode) override;
  private:
   std::map<std::string, int> game_score;
   std::vector<std::pair<std::string, int>> score;
