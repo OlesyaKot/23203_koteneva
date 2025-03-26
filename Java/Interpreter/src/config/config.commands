@@ -1,0 +1,8 @@
++=Increment
+-=Decrement
+>=Next
+<=Back
+[=StartLoop
+]=EndLoop
+.=OutputBytes
+,=ReadAndStore
