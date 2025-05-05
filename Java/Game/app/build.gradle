@@ -23,7 +23,7 @@ dependencies {
     implementation 'org.openjfx:javafx-controls:20'
     implementation 'org.openjfx:javafx-fxml:20'
     // Use JUnit test framework.
-    implementation 'com.github.almasb:fxgl:17.2'
+
     testImplementation 'junit:junit:4.13.2'
 
     implementation 'org.reflections:reflections:0.10.2' // Убедитесь, что версия актуальна
@@ -41,6 +41,14 @@ javafx {
 application {
     // Define the main class for the application.
     mainClass = 'Game.App'
+}
+
+sourceSets {
+    main {
+        resources {
+            srcDirs = ['src/main/resources']
+        }
+    }
 }
 
 run {

@@ -64,8 +64,8 @@ public class Collision {
   }
   
   private boolean rectangleCollision(Rectangle rectangle) {
-    double oX = rectangle.getTranslateX();
-    double oY = rectangle.getTranslateY();
+    double oX = rectangle.getTranslateX() + rectangle.getLayoutX(); 
+    double oY = rectangle.getTranslateY() + rectangle.getLayoutY();
 
     double pX = playerNode.getTranslateX() - offsetX;
     double pY = playerNode.getTranslateY();
@@ -76,7 +76,7 @@ public class Collision {
            pY + player.getPlayerHeight() > oY;   
   }
   
-  private boolean groupCollision(Group group) { 
+  private boolean groupCollision(Group group) {
     double pX = playerNode.getTranslateX();
     double pY = playerNode.getTranslateY();
 

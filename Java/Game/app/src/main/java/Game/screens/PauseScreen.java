@@ -10,16 +10,17 @@ import javafx.animation.ScaleTransition;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 
 public class PauseScreen implements Screen {
-    private GameContext context;
     private Scene scene;
     private boolean init = false;
 
     public PauseScreen(GameContext context) {
-        this.context = context;
     }
 
   @Override
@@ -27,7 +28,7 @@ public class PauseScreen implements Screen {
 
     Button start = new Button("RESUME GAME");
     Button exit = new Button("EXIT GAME");
-
+    
     List<Button> buttons = List.of(start, exit);
 
     buttons.forEach(button -> {
@@ -57,7 +58,20 @@ public class PauseScreen implements Screen {
     VBox menu = new VBox(20);
     menu.setAlignment(Pos.CENTER);
     menu.getChildren().addAll(start, exit);
-    scene = new Scene(menu, 500, 500);
+
+    Image image = new Image(getClass().getResource("/images/pause.png").toExternalForm());
+    ImageView imageView = new ImageView(image);
+    imageView.setPreserveRatio(false);
+
+    StackPane stackPane = new StackPane();
+
+    imageView.fitWidthProperty().bind(stackPane.widthProperty());
+    imageView.fitHeightProperty().bind(stackPane.heightProperty());
+
+    stackPane.getChildren().addAll(imageView, menu);
+    stackPane.setAlignment(Pos.CENTER);
+
+    scene = new Scene(stackPane, 500, 500);
 
     init = true;
   }

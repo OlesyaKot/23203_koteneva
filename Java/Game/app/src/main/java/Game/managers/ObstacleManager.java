@@ -17,6 +17,7 @@ import java.lang.reflect.InvocationTargetException;
 import org.reflections.Reflections;
 
 import Game.gamecomponents.Obstacle;
+import javafx.geometry.Point2D;
 
 public class ObstacleManager {
   private Random random = new Random();
@@ -49,14 +50,22 @@ public class ObstacleManager {
     }
   }
     
-  public Obstacle createRandObstacle(double[] linesCenterY, double startX, double endX) {
+  public Obstacle createRandObstacle(double[] linesCenterY, List<Point2D> obstacleCoords, double startX, double endX) {
     int randLineNumber = random.nextInt(linesCenterY.length); //  выбрали дорогу [0, 2]
-  
     Obstacle newObstacle = getObstacleFromPool();
+    double posX = random.nextDouble(endX - startX) + startX - newObstacle.getHeight(); 
+    double posY = linesCenterY[randLineNumber];
+    if ((posX < 1000) || (endX - posX) < 50)  return null;
 
-    double posX = random.nextDouble((endX - startX) + 1) + startX - newObstacle.getHeight(); 
-
-    newObstacle.setPosition(posX, linesCenterY[randLineNumber]);
+    for (Point2D coords : obstacleCoords) {
+      double x = coords.getX();
+      double y = coords.getY();
+      if (y == posY && (x == posX || Math.abs(x - posX) < 150)) 
+        return null;    
+    }
+    
+    newObstacle.setPosition(posX, posY);
+    obstacleCoords.add(new Point2D(posX, posY));
     return newObstacle;
   }
   

@@ -8,6 +8,7 @@ import Game.gamecomponents.*;
 import javafx.scene.Scene;
 import javafx.animation.AnimationTimer;
 import javafx.scene.layout.Pane;
+import javafx.scene.text.Text;
 
 public class GameScreen implements Screen {
   private ScreenSwitcher switcher;
@@ -24,14 +25,30 @@ public class GameScreen implements Screen {
     this.context = context;
   }
 
+  private double INITIALSPEED = 0.7;
+  private double INITIALMOVE = 0.4;
+  private double move = INITIALMOVE;
+  private double speed = INITIALSPEED;
+  private Text scoreText;
+
   @Override
   public void onCreate(ScreenSwitcher switcher) {
     this.switcher = switcher;
     player = new Player();
-    movingScene = world.initWorld(player);
+    movingScene = world.initWorld(player, move);
 
     gameWorld = new Pane();
     gameWorld.getChildren().addAll(movingScene, player.getPlayer());
+
+    scoreText = new Text();
+    scoreText.setLayoutX(50); 
+    scoreText.setLayoutY(30);  
+    scoreText.setStyle("-fx-font-size: 25px;" +
+                       "-fx-font-weight: bold; " +
+                       "-fx-text-fill: black; "); 
+                       
+    gameWorld.getChildren().add(scoreText);
+
     scene = new Scene(gameWorld, 500, 500);
     init = true;
   }
@@ -70,20 +87,16 @@ public class GameScreen implements Screen {
           if (!player.getIsJump())
             player.jump(-1);
         }
+        default -> { 
+        }
       }
     });
   }
 
-  private double INITIALSPEED = 0.3;
-  private double INITIALMOVE = 0.2;
   private AnimationTimer gameLoop;
   private double savedSpeed = 0.0;
   private double savedMove = 0.0;
 
-  private double move = INITIALMOVE;
-  private double speed = INITIALSPEED;
-
-  private double sceneOffsetX = 0.0;
   @Override
   public void onShow() {
     if (savedSpeed != 0.0 && savedMove != 0.0) {
@@ -96,12 +109,15 @@ public class GameScreen implements Screen {
       public void handle(long now) {
         if (speed < 1.0) {
           speed += 0.00001;
-          move += 0.00001;
+          move += 0.00006;
         }
+        context.addInFinalScore(0.01);
+        scoreText.setText("Score: " + context.getScore());
+
         double offsetX = movingScene.getTranslateX() - move;
         movingScene.setTranslateX(offsetX);
 
-        if (!world.update(offsetX)) {
+        if (!world.update(offsetX, move)) {
           switcher.switchScreen(ScreenType.GAMEOVER);   
         }    
       }
@@ -141,5 +157,3 @@ public class GameScreen implements Screen {
     return init;
   }
 }
-
-// TODO: расположение объектов (пока что рандом) ???

@@ -10,10 +10,10 @@ public class World {
   private final LinkedList<Chunk> activeChunks = new LinkedList<>();
   private final int NUMOFACTIVECHUNK = 3;
   private double cnt = 0;
-  private Pane movingScene/* = new Pane()*/;
+  private Pane movingScene;
   private Collision collision;
 
-  public Pane initWorld(Player player) {
+  public Pane initWorld(Player player, double speed) {
     movingScene = new Pane();
 
     collision = new Collision(player);
@@ -21,13 +21,13 @@ public class World {
     movingScene.setTranslateY(0);
     movingScene.setPrefSize(1900, 1020);
     for (int i = 0; i < NUMOFACTIVECHUNK; ++i) {
-      activeChunks.add(new Chunk(manager, cnt, movingScene, 2));
+      activeChunks.add(new Chunk(manager, cnt, movingScene, 2, speed));
       cnt++;
     }
     return movingScene;
   }
 
-  public boolean update(double offsetX) {
+  public boolean update(double offsetX, double speed) {
     for (Chunk chunk : activeChunks) {
       if (collision.checkCollision(chunk, offsetX)) {
         return false;
@@ -38,7 +38,7 @@ public class World {
     if (-movingScene.getTranslateX() > firstChunk.getTranslateX(movingScene)) {
       firstChunk.removeFromMovingScene(movingScene);
       activeChunks.remove(0);
-      activeChunks.add(new Chunk(manager, cnt, movingScene, 1));
+      activeChunks.add(new Chunk(manager, cnt, movingScene, 1, speed));
       cnt++;
     }
     return true;

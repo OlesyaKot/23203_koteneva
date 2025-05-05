@@ -17,9 +17,11 @@ public class BrushObstacle implements Obstacle {
   public BrushObstacle() {
     trunk = new Rectangle(-width / 2, height, width, height * 2);
     trunk.setFill(Color.BROWN);
+    trunk.setStroke(Color.BLACK);
 
     leaf = new Ellipse(0, height - trunk.getHeight() / 3, width + 15, height + 12);
     leaf.setFill(Color.GREENYELLOW);
+    leaf.setStroke(Color.BLACK);
 
     tree = new Group();
     tree.getChildren().addAll(trunk, leaf);

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import Game.managers.ObstacleManager;
+import javafx.geometry.Point2D;
 import javafx.scene.Group;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
@@ -23,13 +24,13 @@ public class Chunk {
   private Group chunkGroup = new Group();
   private Group roadMarkingsGroup = new Group();
 
-  public Chunk(ObstacleManager manager, double cnt, Pane movingScene, int shift) {
+  public Chunk(ObstacleManager manager, double cnt, Pane movingScene, int shift, double speed) { // speed - по нему будем контролировать, сколько препядствий нам надо создавать
     this.chunkNumber = cnt;
     this.manager = manager;
     createBackGround(movingScene, shift);
     createRoadMarkings(movingScene.getPrefHeight());
     movingScene.getChildren().add(chunkGroup);
-    createObstacles(movingScene);
+    createObstacles(movingScene, speed); // то есть мы передаем этот speed создателю препядствий
   }
 
   Rectangle background;
@@ -73,15 +74,29 @@ public class Chunk {
   }
 
   private List<Obstacle> currObstacle = new ArrayList<>();
-    
-  public void createObstacles(Pane movingScene) {
-    int obstacleCount = 4 + (int) (Math.random() * 4);
+  private List<Point2D> obstacleCoords = new ArrayList<>(); 
+
+  public void createObstacles(Pane movingScene, double speed) {
+    int obstacleCount = getNumObstacle(speed);
     for (int i = 0; i < obstacleCount; ++i) {
-      Obstacle obstacle = manager.createRandObstacle(linesCenterY, startX, endX);
+      Obstacle obstacle = manager.createRandObstacle(linesCenterY, obstacleCoords, startX, endX);
+      if (obstacle == null) {
+        obstacleCount++;
+        continue;
+      }
       movingScene.getChildren().add(obstacle.getObstacleView());
       currObstacle.add(obstacle);
-    } 
+    }
   }
+  
+  private int getNumObstacle(double speed) {
+    if (speed < 0.5)
+      return 5;
+    if (speed > 0.5 && speed < 0.8)
+      return 7;
+    return 9;
+  }
+ 
     
   public double getTranslateX(Pane movingScene) {
     return movingScene.getPrefWidth() * (chunkNumber + 1);
@@ -92,8 +107,9 @@ public class Chunk {
   }
   
   public void removeFromMovingScene(Pane movingScene) {
-    // movingScene.getChildren().remove(chunkGroup);
-    // currObstacle.clear();
+    movingScene.getChildren().remove(chunkGroup);
+    currObstacle.clear();
+    obstacleCoords.clear();
   }
 }
 
