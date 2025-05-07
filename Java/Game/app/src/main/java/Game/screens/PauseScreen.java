@@ -17,10 +17,10 @@ import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 
 public class PauseScreen implements Screen {
-    private Scene scene;
-    private boolean init = false;
+  private Scene scene;
+  private boolean init = false;
 
-    public PauseScreen(GameContext context) {
+  public PauseScreen(GameContext context) {
     }
 
   @Override

@@ -109,7 +109,7 @@ public class GameScreen implements Screen {
       public void handle(long now) {
         if (speed < 1.0) {
           speed += 0.00001;
-          move += 0.00006;
+          move += 0.00008;
         }
         context.addInFinalScore(0.01);
         scoreText.setText("Score: " + context.getScore());

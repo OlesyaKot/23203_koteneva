@@ -21,7 +21,7 @@ public class Player {
     player.setTranslateY(startPlayerY);
   }
 
-  private final Duration moveDuration = Duration.millis(300);
+  private final Duration moveDuration = Duration.millis(280);
 
   public void movePlayerY(int idx) {
     isMoving = true;
@@ -38,7 +38,7 @@ public class Player {
     transition.play();
   }
 
-  private Duration jumpDuration = Duration.millis(250);
+  private Duration jumpDuration = Duration.millis(230);
 
   public void jump(int idx) {
     isJumping = true;

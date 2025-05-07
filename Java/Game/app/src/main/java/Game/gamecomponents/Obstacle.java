@@ -4,11 +4,11 @@ import javafx.scene.Node;
 
 public interface Obstacle {
 
-    void reset();
+  void reset();
 
-    Node getObstacleView();
+  Node getObstacleView();
 
-    double getHeight();
+  double getHeight();
 
-    void setPosition(double X, double Y);
+  void setPosition(double X, double Y);
 }

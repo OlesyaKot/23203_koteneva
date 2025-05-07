@@ -55,12 +55,12 @@ public class ObstacleManager {
     Obstacle newObstacle = getObstacleFromPool();
     double posX = random.nextDouble(endX - startX) + startX - newObstacle.getHeight(); 
     double posY = linesCenterY[randLineNumber];
-    if ((posX < 1000) || (endX - posX) < 50)  return null;
+    if ((posX < 1000) || (endX - posX) < 130)  return null;
 
     for (Point2D coords : obstacleCoords) {
       double x = coords.getX();
       double y = coords.getY();
-      if (y == posY && (x == posX || Math.abs(x - posX) < 150)) 
+      if (y == posY && Math.abs(x - posX) < 140)
         return null;    
     }
     
