@@ -1,0 +1,10 @@
+// Корневой build.gradle
+allprojects {
+    repositories {
+        mavenCentral() // Указываем репозиторий для загрузки зависимостей
+    }
+}
+
+subprojects {
+    apply plugin: 'java' // Применяем плагин Java ко всем подпроектам
+}
