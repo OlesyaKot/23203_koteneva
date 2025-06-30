@@ -52,8 +52,8 @@ public class TorrentContext{
     return numOfPieces;
   }  
 
-  public int getPieceLength() {
-    return (int)pieceLength;
+  public long getPieceLength() {
+    return pieceLength;
   }
   
   public byte[] getInfoHash() {

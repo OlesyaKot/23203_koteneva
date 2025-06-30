@@ -25,7 +25,7 @@ public class SelectorClient {
       this.host = host;
       this.port = port;
     }
-    
+
     public String getHost() {
       return host;
     }
@@ -39,18 +39,17 @@ public class SelectorClient {
   private DownloadManager downloadManager;
   private TorrentContext context;
   private Selector selector;
-  private SocketChannel clientChannel;
   private ClientPeerProccess session;
   private final long RETRY_TO_CONNECT = 5000;
   private List<Peer> syncList = Collections.synchronizedList(new ArrayList<>());
-  
-  public SelectorClient(List<String> peers, ExecutorService threadPool, DownloadManager downloadManager, TorrentContext context) throws IOException{
+
+  public SelectorClient(List<String> peers, ExecutorService threadPool, DownloadManager downloadManager, TorrentContext context) throws IOException {
     this.threadPool = threadPool;
     this.downloadManager = downloadManager;
     this.context = context;
 
     for (String peer : peers) {
-      String[] parts = peer.split(":", 2); 
+      String[] parts = peer.split(":", 2);
       if (parts.length != 2) {
         System.out.println("Wrong format of peer's address: " + peer);
         continue;
@@ -58,9 +57,9 @@ public class SelectorClient {
       syncList.add(new Peer(parts[0], Integer.parseInt(parts[1])));
     }
 
-    selector = Selector.open(); // TODO: throws IOException
+    selector = Selector.open(); 
   }
-  
+
   private boolean isDisconnect = false;
   private final ReentrantLock lock = new ReentrantLock();
   private final Condition disconnectCondition = lock.newCondition();
@@ -70,11 +69,11 @@ public class SelectorClient {
 
       lock.lock();
       while (true) {
-        for (int i = 0; i < syncList.size(); ) {
+        for (int i = 0; i < syncList.size();) {
           try {
             if (tryToConnect(syncList.get(i).getHost(), syncList.get(i).getPort())) {
               if (!session.onConnected()) {
-                // хз надо ли что-то делать тут, переподключаться???
+                continue;
               }
               syncList.remove(syncList.get(i));
             } else {
@@ -84,9 +83,9 @@ public class SelectorClient {
 
           }
         }
-        
+
         lock.unlock();
-        try{
+        try {
           Thread.sleep(RETRY_TO_CONNECT);
         } catch (InterruptedException e) {
           e.printStackTrace();
@@ -113,7 +112,7 @@ public class SelectorClient {
 
   private boolean tryToConnect(String host, int port) throws IOException {
     try {
-      clientChannel = SocketChannel.open();
+      SocketChannel clientChannel = SocketChannel.open();
       clientChannel.configureBlocking(false);
       boolean connected = clientChannel.connect(new InetSocketAddress(host, port));
 
@@ -122,7 +121,7 @@ public class SelectorClient {
         if (clientChannel.finishConnect()) {
           System.out.println("Client: connected to peer: " + host + ":" + port);
           session = new ClientPeerProccess(clientChannel, downloadManager, host, port);
-          clientChannel.register(selector, SelectionKey.OP_CONNECT | SelectionKey.OP_READ, session);
+          clientChannel.register(selector, SelectionKey.OP_READ, session);
           selector.wakeup();
           return true;
         }
@@ -130,7 +129,7 @@ public class SelectorClient {
         System.out.println("Client: connected immediately to " + host + ":" + port);
         clientChannel.finishConnect();
         session = new ClientPeerProccess(clientChannel, downloadManager, host, port);
-        clientChannel.register(selector, SelectionKey.OP_CONNECT | SelectionKey.OP_READ, session);
+        clientChannel.register(selector, SelectionKey.OP_READ, session);
         selector.wakeup();
         return true;
       }
@@ -140,10 +139,8 @@ public class SelectorClient {
     }
     return false;
   }
-  
-  private int i = 0;
 
-  private void listen() throws IOException{
+  private void listen() throws IOException {
     while (true) {
       int numKeys = selector.select();
       if (numKeys == 0)
@@ -155,10 +152,7 @@ public class SelectorClient {
         SelectionKey key = iter.next();
 
         if (key.isReadable()) {
-          i++;
-          System.out.println("CLIENT: get readble messsage " + i);
           readFromServer(key);
-          System.out.println("CLIENT: finish read messsage " + i);
         }
         iter.remove();
       }
@@ -168,15 +162,13 @@ public class SelectorClient {
   private void readFromServer(SelectionKey key) throws IOException {
     SocketChannel clientChannel = (SocketChannel) key.channel();
     ClientPeerProccess session = (ClientPeerProccess) key.attachment();
-    ByteBuffer buffer = ByteBuffer.allocate(context.getPieceLength() + 13); // фиксированный размер 13 - это под заголовок
-    // System.out.println("Client: size message:" + buffer.remaining() + " len context.getPieceLength()" + context.getPieceLength() );
+    ByteBuffer buffer = ByteBuffer.allocate((int) context.getPieceLength() + 13); // фиксированный размер 13 - это под заголовок
 
     try {
       int bytesRead = clientChannel.read(buffer);
-      // System.out.println(" bytesRead " + bytesRead);
       if (bytesRead == -1) {
         System.out.println("Client: server close the connection");
-        key.cancel();        
+        key.cancel();
         clientChannel.close();
 
         lock.lock();
@@ -186,38 +178,50 @@ public class SelectorClient {
           disconnectCondition.signalAll(); // будим все потоки, которые ждут
         } finally {
           lock.unlock();
-        } 
+        }
         return;
       }
 
-      buffer.flip(); // Готовим буфер к чтению
+      buffer.flip(); 
       threadPool.submit(() -> {
 
         try {
-        if (!session.processing(buffer)) {
-          System.out.println("Client: server disconnected 2");
-          try{
-            key.cancel();
-            clientChannel.close();
-    
-            lock.lock();
+          if (!session.processing(buffer)) {
+            System.out.println("Client: server disconnected 2");
             try {
-              isDisconnect = true;
-              syncList.add(new Peer(session.getHost(), session.getPort()));
-              disconnectCondition.signalAll(); // будим все потоки, которые ждут
-            } finally {
-              lock.unlock();
-            } 
-          } catch (IOException ex) {
-            ex.printStackTrace();
+              key.cancel();
+              clientChannel.close();
+
+              lock.lock();
+              try {
+                isDisconnect = true;
+                syncList.add(new Peer(session.getHost(), session.getPort()));
+                disconnectCondition.signalAll();
+              } finally {
+                lock.unlock();
+              }
+            } catch (IOException ex) {
+              ex.printStackTrace();
+            }
           }
-        } 
         } catch (IOException e) {
           e.printStackTrace();
         }
       });
     } catch (IOException e) {
-      e.printStackTrace();
+      System.out.println("Client: server disconnected");
+      lock.lock();
+      try {
+        key.cancel();
+        clientChannel.close();
+        selector.wakeup();
+
+        isDisconnect = true;
+        syncList.add(new Peer(session.getHost(), session.getPort()));
+        disconnectCondition.signalAll(); 
+      } finally {
+        lock.unlock();
+      }
     }
   }
 }

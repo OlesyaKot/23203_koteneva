@@ -3,14 +3,7 @@ package Torrent;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.security.NoSuchAlgorithmException;
 import java.util.BitSet;
-
-// Этот класс отвечает за: 
-
-//     Чтение блоков кусков (для раздачи)
-//     Запись кусков на диск (при скачивании)
-//     Отслеживание завершённых кусков     
 
 public class FileHandler {
   private TorrentContext context;
@@ -18,7 +11,7 @@ public class FileHandler {
   private final RandomAccessFile raFile;
   private File localFile;
 
-  public FileHandler(TorrentContext context) throws NoSuchAlgorithmException, IOException{
+  public FileHandler(TorrentContext context) throws IOException {
     this.context = context;
 
     localFile = new File(context.getFileName());
@@ -28,14 +21,14 @@ public class FileHandler {
     }
         
     raFile = new RandomAccessFile(localFile, "rw");
-    raFile.setLength(context.getFileSize()); // Устанавливаем финальный размер файла 
+    raFile.setLength(context.getFileSize()); 
   }
   
   public BitSet parseDataFile() {
     return piecesChecker.parseDataFile(context, localFile);
   }
 
-  public byte[] readBlock(int index, int offset, int partOfPieceLength) throws IOException{
+  public byte[] readBlock(int index, int offset, int partOfPieceLength) throws IOException {
     try {
       
       long pos = (long) index * context.getPieceLength() + offset;
@@ -47,14 +40,10 @@ public class FileHandler {
         readBytes = raFile.read(block);
       }
 
-      if (index == context.getNumOfPieces() - 1) {
-        if (readBytes != context.getFileSize() - context.getPieceLength() * index)
-          return null; 
-      } else {
-        if (readBytes != partOfPieceLength)
+      if (readBytes != partOfPieceLength) {
           return null;
-      }
-
+        }
+      
       return block;
     } catch (IOException e){
       e.printStackTrace();
@@ -64,14 +53,6 @@ public class FileHandler {
   
   public void writePiece(byte[] data, int pieceIndex) throws IOException {
     long pos = (long) pieceIndex * context.getPieceLength();
-
-    // for (int i = 0; i < 20; ++i) {
-    //   System.out.print(data[i]);
-    // }
-    // System.out.println();
-    // try{
-    // Thread.sleep(1000);
-    // } catch (InterruptedException e){}
 
     synchronized (raFile) {
       raFile.seek(pos);
@@ -83,6 +64,3 @@ public class FileHandler {
     raFile.close();
   }
 }
-
-
-// TODO: отследить все моменты клиентской части, где сервер отрубается - надо вернуть в очередь кусок который мы недокачали

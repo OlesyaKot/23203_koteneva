@@ -18,7 +18,6 @@ public enum BitTorrentID {
     return value;
   }
 
-  // Статический метод для поиска типа по байту
   public static BitTorrentID fromByte(byte value) {
     for (BitTorrentID type : values()) {
       if (type.value == value) {

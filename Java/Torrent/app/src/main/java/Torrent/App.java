@@ -30,9 +30,8 @@ public class App {
       
     downloadManager = new DownloadManager(context);
 
-    ExecutorService threadPool = Executors.newFixedThreadPool(4); // 4 рабочих потока
+    ExecutorService threadPool = Executors.newFixedThreadPool(4); 
 
-    // Запускаем сервер в отдельном потоке
     SelectorServer server = new SelectorServer(context, downloadManager, threadPool, serverPort);
     new Thread(() -> {
       try {
@@ -41,8 +40,6 @@ public class App {
         System.out.println("Server stopped with error: " + e.getMessage());
       }
     }).start();
-    // Ждём немного, чтобы сервер успел запуститься
-    Thread.sleep(200);
 
     SelectorClient client = new SelectorClient(peers, threadPool, downloadManager, context);
     client.start();

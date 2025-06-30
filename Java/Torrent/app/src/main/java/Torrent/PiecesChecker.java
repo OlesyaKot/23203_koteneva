@@ -8,12 +8,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.BitSet;
 
-// Этот класс отвечает за: 
-
-//     Проверку наличия кусков в файле
-//     Вычисление хэша куска
-//     Определение, совпадает ли он с ожидаемым из .torrent
-     
 public class PiecesChecker {
   private final int SHA_LEN = 20;
 
@@ -37,13 +31,12 @@ public class PiecesChecker {
   }
   
 //  Проверяет один кусок по индексу.
-  public boolean verifyPieceHash(File file, TorrentContext context, int pieceIndex) throws IOException, NoSuchAlgorithmException {
-
+  public boolean verifyPieceHash(File file, TorrentContext context, int pieceIndex) throws IOException, NoSuchAlgorithmException { 
     try (RandomAccessFile randAccFile = new RandomAccessFile(file, "r")) {
-      int pieceLength = context.getPieceLength();
+      long pieceLength = context.getPieceLength();
       long fileSize = context.getFileSize();
 
-      long position = (long) pieceIndex * pieceLength;
+      long position = pieceIndex * pieceLength;
       long length = Math.min(pieceLength, fileSize - position);
       byte[] buffer = new byte[(int) length];
       randAccFile.seek(position);

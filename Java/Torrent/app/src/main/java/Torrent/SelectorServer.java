@@ -30,7 +30,6 @@ public class SelectorServer {
 
   public void start() throws IOException {
     while (true) {
-      // System.out.println("Server: waiting for clients");
       selector.select();
 
       Set<SelectionKey> selectedKeys = selector.selectedKeys();
@@ -66,7 +65,7 @@ public class SelectorServer {
   
       client.register(selector, SelectionKey.OP_READ, session);
       System.out.println("Server: accepted new connection from " + client.getRemoteAddress());
-      downloadManager.addConnectedPeer(client, session);
+      downloadManager.addConnectedPeer(client, session); 
       session.onConnected();    
     } catch (IOException e) {
       throw e;
@@ -75,9 +74,9 @@ public class SelectorServer {
 
   private void readDataFromPeer(SelectionKey key){
     SocketChannel client = (SocketChannel) key.channel();    
-    ServerPeerProccess session = (ServerPeerProccess) key.attachment(); // attachment - третий параментр в register, который мы делали при acceptConnection
+    ServerPeerProccess session = (ServerPeerProccess) key.attachment();
 
-    ByteBuffer buffer = ByteBuffer.allocate(context.getPieceLength());
+    ByteBuffer buffer = ByteBuffer.allocate((int)context.getPieceLength());
     try{
       int bytesRead = client.read(buffer); 
 
@@ -103,7 +102,7 @@ public class SelectorServer {
           key.cancel();
         }
       });
-// TODO: возможно надо else с отправкой след сообщ
+
     } catch (IOException e) {
       try {
         downloadManager.removeConnectedPeer(client);
@@ -115,6 +114,3 @@ public class SelectorServer {
    }
   }
 }
-
-// nc localhost 9999 (nc - net cat)
-// TODO: делать keep-alive message, которые отправляются клиентом серверу -> если сервер отключен, то write вернет -1 и так мы поймем, что надо переподключаться
