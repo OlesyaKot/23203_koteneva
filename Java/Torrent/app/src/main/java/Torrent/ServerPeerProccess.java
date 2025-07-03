@@ -60,7 +60,7 @@ public class ServerPeerProccess implements PeerProccess{   // основной �
     }
 
     buff.get(reservedBytes); // это зарезервированные флаги, игнорим
-    buff.get(infoHash); // его надо сравнить с хэшом нашего торрент файла
+    buff.get(infoHash);
     if (!Arrays.equals(infoHash, downloadManager.getInfoHash())){
       System.out.println("Server: client work with enother torrent file");
       return;
@@ -78,7 +78,7 @@ public class ServerPeerProccess implements PeerProccess{   // основной �
     return;
   }
   
-  private boolean handleMessage(ByteBuffer buff){ // обрабатываем запрос от клиента (в зависимости от типа сообщение отвечаем клиенту)
+  private boolean handleMessage(ByteBuffer buff){ 
     while (buff.hasRemaining()) {
       if (buff.remaining() < 4) {
         System.out.println("Server: incorrect peer message's length");
@@ -127,16 +127,17 @@ public class ServerPeerProccess implements PeerProccess{   // основной �
           break;
         }
 
-        case REQUEST: { 
+        case REQUEST: {
           if (buff.remaining() < 12) {
             System.out.println("Server: incomplete request message");
             return true;
           }
-        
+
           int pieceidx = buff.getInt();
           int offset = buff.getInt();
           int pieceDataLength = buff.getInt();
-          System.out.println("SERVER: CLIENT WANTS TO GET " + pieceDataLength + " with offset " + offset + " with index " + pieceidx);
+          System.out.println(
+              "SERVER: CLIENT WANTS TO GET " + pieceDataLength + " with offset " + offset + " with index " + pieceidx);
 
           try {
             if (!handleRequest(pieceidx, offset, pieceDataLength)) {
@@ -148,13 +149,15 @@ public class ServerPeerProccess implements PeerProccess{   // основной �
           }
           break;
         }
+        default:
+          break;
       }
     }
     return true;
   }
 
   private boolean handleRequest(int index, int offset, int pieceDataLength) throws IOException {
-    if (!isInterested){ // || !downloadManager.hasVerified(index)) {
+    if (!isInterested){ 
       System.out.println("Server: client isn't interested in downloading");
       return true;
     }
@@ -162,8 +165,6 @@ public class ServerPeerProccess implements PeerProccess{   // основной �
 
       byte[] block = downloadManager.readBlock(index, offset, pieceDataLength);
     
-      System.out.println("cccccccccccccc");
-
       if (block != null) {
         ByteBuffer pieceMessage = MessageMaker.makePieceMessage(index, offset, block);
         if (!sendMessage(pieceMessage)) {

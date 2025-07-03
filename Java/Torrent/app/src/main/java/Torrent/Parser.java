@@ -55,20 +55,17 @@ public class Parser {
   }
 
     private static byte[] getEncodedInfo(byte[] torrentBytes) throws IOException {
-        // Находим начало info словаря (маркер "4:info")
         String marker = "4:info";
         int start = indexOf(torrentBytes, marker.getBytes(StandardCharsets.UTF_8));
         if (start == -1) {
             throw new IOException("Invalid torrent file: info section not found");
         }
         
-        // Находим начало словаря (символ 'd' перед "4:info")
         start = lastIndexOf(torrentBytes, (byte)'d', start);
         if (start == -1) {
             throw new IOException("Invalid torrent file: info dictionary not found");
         }
         
-        // Находим конец словаря
         int depth = 1;
         for (int i = start + 1; i < torrentBytes.length; i++) {
             if (torrentBytes[i] == 'd') {

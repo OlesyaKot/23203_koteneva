@@ -66,7 +66,6 @@ public class SelectorClient {
 
   public void start() throws IOException {
     new Thread(() -> {
-
       lock.lock();
       while (true) {
         for (int i = 0; i < syncList.size();) {

@@ -108,7 +108,6 @@ public class ClientPeerProccess implements PeerProccess {
       }
 
       BitTorrentID type = BitTorrentID.fromByte(buff.get());
-      System.out.println(type);
       switch (type) {
         case BITFIELD: {
           byte[] bitField = new byte[messageLength - 1];
@@ -132,19 +131,16 @@ public class ClientPeerProccess implements PeerProccess {
           break;
         }
         
-        case HAVE: { // have - клиент получил новый кусок
+        case HAVE: { 
           int pieceIndex = buff.getInt();
-          System.out.println("HAVE");
 
           synchronized (serverAvailablePieces) {
             serverAvailablePieces.set(pieceIndex);
           }
-          System.out.println("HAVE HAVE");
 
           if (downloadManager.getAvailPieces().get(pieceIndex))
             break;
 
-          System.out.println("HAVE HAVE HAVE");
           if (!sendNextRequest()) {
             return false;
           }
@@ -163,7 +159,6 @@ public class ClientPeerProccess implements PeerProccess {
           int pieceIdx = buff.getInt();
           int offset = buff.getInt();
           int pieceDataLength = messageLength - 9; // messageLength - (ID + index + begin)  4 (index) + 4 (offset) + 1 (id) 
-          // System.out.println("CLIENT: lower level: pieceDataLen: " + pieceDataLength + "; what bytes left: " + buff.remaining());
           if (buff.remaining() < pieceDataLength) {
             System.out.println("Client: incomplete piece message data");
             return true;
@@ -182,7 +177,8 @@ public class ClientPeerProccess implements PeerProccess {
           }
           break;
         }
-        default : 
+
+        default: 
           break;
       }
     }
